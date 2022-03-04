@@ -1,1 +1,0 @@
-| #Test | Percentage of success BMI | Percentage of success OTSDm | Percentage of killed mutants by BMI | Percentage of killed mutants by OTSDm | Average computation time of BMI | Average computation time of OTSDm |
