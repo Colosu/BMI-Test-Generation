@@ -1,2 +1,0 @@
-#!/bin/bash
-nohup java -jar BMIvsWp.jar > Exec.out 2> Exec.err < /dev/null &
