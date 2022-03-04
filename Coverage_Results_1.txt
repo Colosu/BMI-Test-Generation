@@ -1,1 +1,0 @@
-| #Test | Percentage of success BMI | Percentage of success Coverage | Percentage of killed mutants by BMI | Percentage of killed mutants by Coverage | Average computation time of BMI | Average computation time of Coverage |
