@@ -57,14 +57,20 @@ public class Main {
     	double time2;
     	double meanTime1;
     	double meanTime2;
-    	String[] measures = {"Random"}; //"Random", "W", "Wp", "ITSDm", "OTSDm", "IOTSDm", "Coverage"
+    	double len1;
+    	double len2;
+    	double meanLen1;
+    	double meanLen2;
+    	double minLen;
+    	double maxLen;
+    	String measure = "H"; //"Random", "W", "Wp", "ITSDm", "OTSDm", "IOTSDm", "Coverage", "H", "TT"
 		
-        for (String measure : measures) {
+        for (int IT = 0; IT < 5; IT++) {
 			try {
-				Ofile = measure + "Results_" + measure + ".txt";
+				Ofile = measure + "Results_" + IT + ".txt";
 				OFile = new FileWriter(Ofile);
 				OFile.write(
-						"| #Test | Percentage of success BMI | Percentage of success " + measure + " | Percentage of killed mutants by BMI | Percentage of killed mutants by " + measure + " | Average computation time of BMI | Average computation time of " + measure + " |\n");
+						"| #Test | Percentage of success BMI | Percentage of success " + measure + " | Percentage of killed mutants by BMI | Percentage of killed mutants by " + measure + " | Average computation time of BMI | Average computation time of " + measure + " | Average test suite length of BMI | Average test suite length of " + measure + " | Min test suite length of " + measure + " | Max test suite length of " + measure + " |\n");
 				OFile.flush();
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -80,6 +86,10 @@ public class Main {
 			meanKilled2 = 0;
 			meanTime1 = 0;
 			meanTime2 = 0;
+			meanLen1 = 0;
+			meanLen2 = 0;
+			minLen = 100000;
+			maxLen = 0;
 			total = 0;
 
 			for (int I = 0; I < REP; I++) {
@@ -91,6 +101,8 @@ public class Main {
 				killed2 = 0;
 				time1 = 0;
 				time2 = 0;
+				len1 = 0;
+				len2 = 0;
 				valid = 0;
 //					for (int J = INI; J < INI + EXP; J++) {
 				for (File Ifile : folder.listFiles()) {
@@ -123,7 +135,7 @@ public class Main {
 //						lenWp += n.getDepth();
 //					}
 					
-					len = LEN;
+					len = LEN*(IT+1);
 //					len = Math.max((int)(lenWp * 0.1),2);
 //						len = G.getMachine().size() * G.getMachine().numInputs() * A / 5;
 					
@@ -143,6 +155,18 @@ public class Main {
 					case "Random":
 						startTime = System.nanoTime() /(double)1000000000;
 						TS[1] = Ops.GenerateRandomTestSuite(G, len, false);
+						endTime = System.nanoTime() /(double)1000000000;
+						t2 = endTime - startTime;
+						break;
+					case "H":
+						startTime = System.nanoTime() /(double)1000000000;
+						TS[1] = Ops.HMethod(G);
+						endTime = System.nanoTime() /(double)1000000000;
+						t2 = endTime - startTime;
+						break;
+					case "TT":
+						startTime = System.nanoTime() /(double)1000000000;
+						TS[1] = Ops.TransitionTour(G);
 						endTime = System.nanoTime() /(double)1000000000;
 						t2 = endTime - startTime;
 						break;
@@ -190,6 +214,7 @@ public class Main {
 							}
 						}
 					}
+					
 
 					// Check if our measure detected the best test suite
 					if (count[0] > count[1]) {
@@ -201,6 +226,18 @@ public class Main {
 						killed2 += (double) count[1] / (double)MUT;
 						time1 += t1;
 						time2 += t2;
+						len1 += len;
+						double auxLen = 0;
+						for (Node T : TS[1]) {
+							auxLen += T.getDepth();
+						}
+						len2 += auxLen;
+						if (minLen > auxLen) {
+							minLen = auxLen;
+						}
+						if (maxLen < auxLen) {
+							maxLen = auxLen;
+						}
 					}
 					J++;
 
@@ -210,7 +247,11 @@ public class Main {
 									+ String.format("%.4f", (double) killed1 / (double) valid).replace(',', '.') + " --> "
 									+ String.format("%.4f",(double) killed2 / (double) valid).replace(',', '.') + " --> "
 									+ String.format("%.4f",(double) time1 / (double) valid).replace(',', '.') + " --> "
-									+ String.format("%.4f",(double) time2 / (double) valid).replace(',', '.'));
+									+ String.format("%.4f",(double) time2 / (double) valid).replace(',', '.') + " --> "
+									+ String.format("%.4f",(double) len1 / (double) valid).replace(',', '.') + " --> "
+									+ String.format("%.4f",(double) len2 / (double) valid).replace(',', '.') + " --> "
+									+ String.format("%.4f",minLen).replace(',', '.') + " --> "
+									+ String.format("%.4f",maxLen).replace(',', '.'));
 					System.out.flush();
 				}
 
@@ -220,7 +261,11 @@ public class Main {
 							+ String.format("%.4f",(double) killed1 / (double) valid).replace(',', '.') + " & "
 							+ String.format("%.4f",(double) killed2 / (double) valid).replace(',', '.') + " & "
 							+ String.format("%.4f",(double) time1 / (double) valid).replace(',', '.') + " & "
-							+ String.format("%.4f",(double) time2 / (double) valid).replace(',', '.') + " \\\\\n");
+							+ String.format("%.4f",(double) time2 / (double) valid).replace(',', '.') + " & "
+							+ String.format("%.4f",(double) len1 / (double) valid).replace(',', '.') + " & "
+							+ String.format("%.4f",(double) len2 / (double) valid).replace(',', '.') + " & "
+							+ String.format("%.4f",minLen).replace(',', '.') + " & "
+							+ String.format("%.4f",maxLen).replace(',', '.') + " \\\\\n");
 					OFile.write("\\hline\n");
 					OFile.flush();
 				} catch (IOException e) {
@@ -231,6 +276,8 @@ public class Main {
 				meanKilled2 += killed2;
 				meanTime1 += time1;
 				meanTime2 += time2;
+				meanLen1 += len1;
+				meanLen2 += len2;
 				total += valid;
 
 				System.out.println(
@@ -239,7 +286,11 @@ public class Main {
 								+ String.format("%.4f",(double) meanKilled1 / (double) total).replace(',', '.') + " --> "
 								+ String.format("%.4f",(double) meanKilled2 / (double) total).replace(',', '.') + " --> "
 								+ String.format("%.4f",(double) meanTime1 / (double) total).replace(',', '.') + " --> "
-								+ String.format("%.4f",(double) meanTime2 / (double) total).replace(',', '.'));
+								+ String.format("%.4f",(double) meanTime2 / (double) total).replace(',', '.') + " --> "
+								+ String.format("%.4f",(double) meanLen1 / (double) total).replace(',', '.') + " --> "
+								+ String.format("%.4f",(double) meanLen2 / (double) total).replace(',', '.') + " --> "
+								+ String.format("%.4f",minLen).replace(',', '.') + " --> "
+								+ String.format("%.4f",maxLen).replace(',', '.'));
 				System.out.flush();
 			}
 			try {
@@ -248,7 +299,11 @@ public class Main {
 						+ String.format("%.4f",(double) meanKilled1 / (double) total).replace(',', '.') + " & "
 						+ String.format("%.4f",(double) meanKilled2 / (double) total).replace(',', '.') + " & "
 						+ String.format("%.4f",(double) meanTime1 / (double) total).replace(',', '.') + " & "
-						+ String.format("%.4f",(double) meanTime2 / (double) total).replace(',', '.') + " \\\\\n");
+						+ String.format("%.4f",(double) meanTime2 / (double) total).replace(',', '.') + " & "
+						+ String.format("%.4f",(double) meanLen1 / (double) total).replace(',', '.') + " & "
+						+ String.format("%.4f",(double) meanLen2 / (double) total).replace(',', '.') + " & "
+						+ String.format("%.4f",minLen).replace(',', '.') + " & "
+						+ String.format("%.4f",maxLen).replace(',', '.') + " \\\\\n");
 				OFile.write("\\hline\n");
 				OFile.flush();
 				OFile.close();

@@ -10,11 +10,14 @@ import java.util.Random;
 
 import org.apache.commons.lang.ArrayUtils;
 
+import net.automatalib.automata.simple.SimpleDeterministicAutomaton;
 import net.automatalib.automata.simple.SimpleDeterministicAutomaton.IntAbstraction;
 import net.automatalib.automata.transducers.impl.compact.CompactMealy;
 import net.automatalib.util.automata.conformance.WMethodTestsIterator;
 import net.automatalib.util.automata.conformance.WpMethodTestsIterator;
+import net.automatalib.words.Alphabet;
 import net.automatalib.words.Word;
+import net.automatalib.util.automata.cover.Covers;
 
 public class Operations {
 
@@ -327,6 +330,42 @@ public class Operations {
 					FFBest = FF[best];
 				}
 			}
+		}
+		return TS;
+	}
+	
+	public ArrayList<Node> HMethod(Graph g) {
+		ArrayList<Node> TS = new ArrayList<Node>();
+		H h = new H();
+		TS = h.HMethod(g);
+		return TS;
+	}
+	
+	public ArrayList<Node> TransitionTour(Graph g) {
+		ArrayList<Node> TS = new ArrayList<Node>();
+		CompactMealy<String,String> fsm = g.getMachine();
+		Alphabet<String> inputs = fsm.getInputAlphabet();
+		String input;
+		Node T = null;
+		int state = fsm.getInitialState();
+		for (Iterator<Word<String>> iter = Covers.transitionCoverIterator(fsm, inputs); iter.hasNext(); ) {
+			input = iter.next().firstSymbol();
+//			iter.remove();
+			if (fsm.getSuccessor(state, input) != SimpleDeterministicAutomaton.IntAbstraction.INVALID_STATE) {
+				if (T == null) {
+					T = new Node();
+					TS.add(T);
+				}
+			} else {
+				state = fsm.getInitialState();
+				T = new Node();
+				TS.add(T);
+			}
+			T.setInput(input);
+			T.setOutput(fsm.getOutput(state,input));
+			T.setNext(new Node());
+			T = T.getNext();
+			state = fsm.getSuccessor(state, input);	
 		}
 		return TS;
 	}

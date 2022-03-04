@@ -1,9 +1,12 @@
 package main;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import net.automatalib.automata.transducers.impl.compact.CompactMealy;
+import net.automatalib.automata.transducers.impl.compact.CompactMealyTransition;
 import net.automatalib.words.Alphabet;
 import net.automatalib.words.impl.Alphabets;
 import statemachine.model.fsm.mealy.MealyNonDetModel;
@@ -37,6 +40,47 @@ public class IOHandler {
 
 		Graph g = new Graph(mm);
 		return g;
+	}
+	
+	@SuppressWarnings("unused")
+	public void toTXT(Graph g, String file) {
+		String Ofile;
+		FileWriter OFile;
+		CompactMealy<String, String> mm = g.getMachine();
+		CompactMealyTransition<String> t;
+		int p = 0;
+
+		try {
+			Ofile = file;
+			OFile = new FileWriter(Ofile);
+			OFile.write("F 0\n");
+			OFile.write("s " + mm.getStates().size() + "\n");
+			OFile.write("i " + mm.numInputs() + " ");
+			mm.getInputAlphabet().forEach((x) -> {try {OFile.write(x + " ");} catch (Exception e) {e.printStackTrace();}});
+			OFile.write("\n");
+			OFile.write("o " + g.getOutputAlphabet().size() + " ");
+			g.getOutputAlphabet().forEach((x) -> {try {OFile.write(x + " ");} catch (Exception e) {e.printStackTrace();}});
+			OFile.write("\n");
+			OFile.write("n0 " + mm.getInitialState() + "\n");
+			for (Integer state : mm.getStates()) {
+				for (String in: mm.getInputAlphabet()) {
+					p++;
+				}
+			}
+			OFile.write("p " + p + "\n");
+			OFile.flush();
+			for (Integer state : mm.getStates()) {
+				for (String in: mm.getInputAlphabet()) {
+					t = mm.getTransition(state, in);
+					OFile.write(state + " " + in + " " + t.getSuccId() + " " + t.getOutput() + "\n");
+				}
+			}
+			OFile.flush();
+			OFile.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return;
+		}
 	}
 
     public Graph buildCoffeeMachine() {
