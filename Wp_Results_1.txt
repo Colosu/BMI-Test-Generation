@@ -1,3 +1,0 @@
-| #Test | Percentage of success BMI | Percentage of success Wp | Percentage of killed mutants by BMI | Percentage of killed mutants by Wp | Average computation time of BMI | Average computation time of Wp |
-1 & 1.0000 & 0.0000 & 0.3090 & 0.0000 & 70.0491 & 0.0021 \\
-\hline
